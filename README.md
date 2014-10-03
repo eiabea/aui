@@ -162,6 +162,7 @@ syslinux-install_update -iam
 * Make sure Syslinux is mounting the correct parition
 ```
 nano /boot/syslinux/syslinux.cfg
+--> change TIMEOUT to 10
 ```
 
 
@@ -203,8 +204,8 @@ cd aui
 
 * Install packages
 ```
-pacman -S wget gnome-terminal
-yaourt -S android-studio
+pacman -S wget
+yaourt -S android-studio gnome-screenshot gnome-terminal-transparent net-tools
 ```
 
 * Set LightDM Keymap
@@ -221,7 +222,12 @@ EndSection
 #### Settings
 * Disable Touchpad
 * Enable MiddleClick Scroll http://askubuntu.com/questions/2557/thinkpad-middle-button-scrolling
-* 
+* Themes - Numix-Cinnamon
+* Other Settings - Numix
+* Power Management - When lid closed - Do nothing
+* Keyboard - Keyboard Shortcuts - remove Bindings for Toggle Scale / Toggle Expo
+* Keyboard - Keyboard Shortcuts - create Ctrl + Alt + L for bin/lockScreen
+* Set background
 
 
 
