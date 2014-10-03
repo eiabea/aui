@@ -1,71 +1,228 @@
-# Archlinux U Install
+Installation Guide for Arch Linux
+=================================
+---
 
-Install and configure archlinux has never been easier!
+* Create USB Stick
+```
+dd bs=4M if=arch.img of=/dev/sdX && sync
+```
 
-You can try it first with a `virtualbox`
+* Set Keymap
+```
+loadkeys de
+```
 
-## Prerequisites
+* Generate Locales
+```
+locale-gen
+```
 
-- A working internet connection
-- Logged in as 'root'
+---
 
-## How to get it
-### With git
-- Get list of packages and install git: `pacman -Sy git`
-- get the script: `git clone git://github.com/helmuthdu/aui`
 
-### Without git
-- get the script: ` wget --no-check-certificate https://github.com/helmuthdu/aui/tarball/master -O - | tar xz`
-    - an alternate URL (for less typing) is ` wget --no-check-certificate http://bit.ly/NoUPC6 -O - | tar xz`
-    - super short `wget ow.ly/wnFgh -o aui.zip`
+#### Establish Internetconnection
+##### Wireless
 
-## How to use
-- FIFO [system base]: `cd <dir> && ./fifo`
-- LILO [the rest...]: `cd <dir> && ./lilo`
+* Find name of Wifi Card
+```
+iw dev
+```
 
-## FIFO SCRIPT
-- Configure keymap
-- Select editor
-- Automatic configure mirrorlist
-- Create partition
-- Format device
-- Install system base
-- Configure fstab
-- Configure hostname
-- Configure timezone
-- Configure hardware clock
-- Configure locale
-- Configure mkinitcpio
-- Install/Configure bootloader
-- Configure mirrorlist
-- Configure root password
+* Open wifi-menu
+```
+wifi-menu wlp2s0
+```
 
-## LILO SCRIPT
-- Backup all modified files
-- Install additional repositories
-- Create and configure new user
-- Install and configure sudo
-- Automatic enable services in systemd
-- Install an AUR Helper [yaourt, packer, pacaur]
-- Install base system
-- Install systemd
-- Install Preload
-- Install Zram
-- Install Xorg
-- Install GPU Drivers
-- Install CUPS
-- Install Additional wireless/bluetooth firmwares
-- Ensuring access to GIT through a firewall
-- Install DE or WM [Cinnamon, Enlightenment, FluxBox, GNOME, i3, KDE, LXDE, OpenBox, XFCE]
-- Install Developement tools [Vim, Emacs, Eclipse...]
-- Install Office apps [LibreOffice, GNOME-Office, Latex...]
-- Install System tools [Wine, Virtualbox, Grsync, Htop]
-- Install Graphics apps [Inkscape, Gimp, Blender, MComix]
-- Install Internet apps [Firefox, Google-Chrome, Jdownloader...]
-- Install Multimedia apps [Rhythmbox, Clementine, Codecs...]
-- Install Games [HoN, World of Padman, Wesnoth...]
-- Install Fonts [Liberation, MS-Fonts, Google-webfonts...]
-- Install and configure Web Servers
-- Many More...
+* Connect to Wifi
 
-If you like my work, please consider a small Paypal donation at helmuthdu@gmail.com :)
+#### Prepare Disk
+##### Create Partitions
+* Delete Partitiontable
+```
+sgdisk --zap-all /dev/sda
+```
+* Start cgdisk
+```
+cgdisk /dev/sda
+```
+* Create Swap Partition (Hex: 8200)
+* Create Root Partition (Hex: 8300)
+* Create Home Partition (Hex: 8300)
+* Write Partitions to Disk
+* Quit cgdisk
+
+##### Create Filesystems
+
+* Swap
+```
+mkswap /dev/sda1
+swapon /dev/sda1
+```
+
+* Other Partitions
+```
+mkfs.ext4 /dev/sda2
+mkfs.ext4 /dev/sda3
+```
+
+* Mount Root Partition
+```
+mount /dev/sd2 /mnt
+```
+
+* Create Home Directory
+```
+mkdir /mnt/home
+```
+
+* Mount Home Partition
+```
+mount /dev/sd3 /mnt
+```
+
+#### Install Base System
+
+```
+pacstrap -i /mnt base base-devel
+```
+
+#### Generating Fstab
+```
+genfstab -U -p /mnt >> /mnt/etc/fstab
+```
+
+#### Chroot into installed System
+```
+arch-chroot /mnt /bin/bash
+```
+
+* Generate Locale
+```
+nano /etc/locale.gen
+// Uncomment en_US.UTF-8
+locale-gen
+```
+
+* Set default Language
+```
+echo LANG=en_US.UTF-8 > /etc/locale.conf
+export LANG=en_US.UTF-8
+```
+
+* Set Keymap and Font
+```
+nano /etc/vconsole.conf
+KEYMAP=de-latin1-nodeadkeys
+FONT=lat9w-16
+```
+
+* Set Timezone
+```
+ln -s /usr/share/zoneinfo/Europe/Vienna /etc/localtime
+```
+
+* Set Clock
+```
+hwclock --systohc --utc
+```
+
+* Set Hostname
+```
+echo arch-e330 > /etc/hostname
+```
+
+#### Configure Wifi
+* Install iw, wpa_supplicant and dialog
+```
+pacman -S iw wpa_supplicant dialog
+```
+
+* Connect to Wifi with wifi-menu
+```
+wifi-menu _wifi-adapter_
+```
+
+#### Create Ramdisk
+```
+mkinitcpio -p linux
+```
+
+#### Set Root Password
+```
+passwd
+```
+
+#### Install Bootloader (SysLinux)
+```
+pacman -S gptfdisk
+pacman -S syslinux
+syslinux-install_update -iam
+```
+
+* Make sure Syslinux is mounting the correct parition
+```
+nano /boot/syslinux/syslinux.cfg
+```
+
+
+#### Exit Installed System
+```
+exit
+```
+
+#### Unmount all Partitions
+```
+umount /mnt/home
+umount /mnt
+```
+
+#### Reboot
+```
+reboot
+```
+
+#### Setup System
+
+* Install git
+```
+pacman -S git
+```
+
+* Clone Install Script
+```
+git clone https://github.com/eiabea/aui.git
+```
+
+* Run Install Script
+```
+cd aui
+./lilo
+```
+
+#### Post Installation
+
+* Install packages
+```
+pacman -S wget gnome-terminal
+yaourt -S android-studio
+```
+
+* Set LightDM Keymap
+```
+nano /etc/X11/xorg.conf.d/20-keyboard.conf
+Section "InputClass"
+    Identifier "keyboard"
+    MatchIsKeyboard "yes"
+    Option "XkbLayout" "de"
+    Option "XkbVariant" "nodeadkeys"
+EndSection
+```
+
+#### Settings
+* Disable Touchpad
+* Enable MiddleClick Scroll http://askubuntu.com/questions/2557/thinkpad-middle-button-scrolling
+* 
+
+
+
+
